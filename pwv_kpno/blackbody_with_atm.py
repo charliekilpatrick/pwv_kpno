@@ -52,7 +52,7 @@ from typing import Union
 import numpy as np
 from astropy import units as u
 from astropy.constants import c
-from astropy.modeling.blackbody import blackbody_lambda
+from astropy.modeling.physical_models import BlackBody
 
 from pwv_kpno.pwv_atm import trans_for_pwv
 
@@ -76,9 +76,10 @@ def sed(temp: float,
          An array of flux values in units of ergs / (angstrom * cm2 * s * sr)
      """
 
-    # blackbody_lambda returns ergs / (angstrom * cm2 * s * sr)
-    bb_sed = blackbody_lambda(wavelengths, temp).value
-
+    # Updated to new version of astropy.modeling
+    bb = BlackBody(temperature=temp * u.Kelvin, scale=1.0 * u.erg/(u.cm*u.cm *u.s *u.AA * u.sr))
+    bb_sed = bb(wavelengths * u.AA).value
+    
     if pwv > 0:
         transmission = trans_for_pwv(pwv, bins=bins)
         sampled_transmission = np.interp(wavelengths,
